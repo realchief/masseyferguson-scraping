@@ -13,7 +13,7 @@ class SiteProductItem(Item):
     product_name = Field()
     images = Field()
     feature = Field()
-    specification = Field()
+    # specification = Field()
 
 
 class MasseyfergusionScraper (scrapy.Spider):
@@ -55,8 +55,8 @@ class MasseyfergusionScraper (scrapy.Spider):
         feature = self._parse_feature(response)
         product['feature'] = feature
 
-        specification = self._parse_specification(response)
-        product['specification'] = specification
+        # specification = self._parse_specification(response)
+        # product['specification'] = specification
 
         yield product
 
@@ -76,12 +76,12 @@ class MasseyfergusionScraper (scrapy.Spider):
 
     @staticmethod
     def _parse_feature(response):
-        price = response.xpath('//span[contains(@id,"priceblock")]/text()').extract()
-        return price[0].split('-')[0] if price else None
+        features = response.xpath('//div[contains(@id,"Features")]//a[contains(@class, "btn-gold")]//text()').extract()
+        return features
 
-    @staticmethod
-    def _parse_specification(response):
-        original_price = response.xpath('//span[contains(@class,"a-text-strike")]/text()').extract()
-        if not original_price:
-            original_price = response.xpath('//span[contains(@id,"priceblock")]/text()').extract()
-        return original_price[0].split('-')[0] if original_price else None
+    # @staticmethod
+    # def _parse_specification(response):
+    #     original_price = response.xpath('//span[contains(@class,"a-text-strike")]/text()').extract()
+    #     if not original_price:
+    #         original_price = response.xpath('//span[contains(@id,"priceblock")]/text()').extract()
+    #     return original_price[0].split('-')[0] if original_price else None
