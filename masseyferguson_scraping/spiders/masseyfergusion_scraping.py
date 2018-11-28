@@ -13,7 +13,7 @@ class SiteProductItem(Item):
     product_name = Field()
     images = Field()
     feature = Field()
-    # specification = Field()
+    specification = Field()
 
 
 class MasseyfergusionScraper (scrapy.Spider):
@@ -55,8 +55,8 @@ class MasseyfergusionScraper (scrapy.Spider):
         feature = self._parse_feature(response)
         product['feature'] = feature
 
-        # specification = self._parse_specification(response)
-        # product['specification'] = specification
+        specification = self._parse_specification(response)
+        product['specification'] = specification
 
         yield product
 
@@ -79,9 +79,28 @@ class MasseyfergusionScraper (scrapy.Spider):
         features = response.xpath('//div[contains(@id,"Features")]//a[contains(@class, "btn-gold")]//text()').extract()
         return features
 
-    # @staticmethod
-    # def _parse_specification(response):
-    #     original_price = response.xpath('//span[contains(@class,"a-text-strike")]/text()').extract()
-    #     if not original_price:
-    #         original_price = response.xpath('//span[contains(@id,"priceblock")]/text()').extract()
-    #     return original_price[0].split('-')[0] if original_price else None
+    def _parse_specification(self, response):
+        result = []
+        t_header = response.xpath('//table[contains(@class, "table-striped")]/thead/tr/th/text()').extract()
+        t_body = response.xpath('//table[contains(@class, "table-striped")]/div[contains(@class, "tablePar")]//tr').extract()
+        if len(t_header) > 0:
+            for body in t_body:
+                spec = {}
+                tree_body = html.fromstring(body)
+                spec_body_vals = tree_body.xpath('//tr/td/text()')
+
+                for i in range(0, len(t_header) - 1):
+                    spec_header = self._clean_text(t_header[i])
+                    if spec_body_vals:
+                        spec_body = self._clean_text(spec_body_vals[i])
+                        spec[spec_header] = spec_body
+                result.append(spec)
+        return result
+
+
+    @staticmethod
+    def _clean_text(text):
+        text = text.replace("\n", " ").replace("\t", " ").replace("\r", " ")
+        text = re.sub("&nbsp;", " ", text).strip()
+
+        return re.sub(r'\s+', ' ', text)
