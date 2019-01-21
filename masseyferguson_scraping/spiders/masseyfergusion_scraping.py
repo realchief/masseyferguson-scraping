@@ -10,10 +10,17 @@ import json
 
 
 class SiteProductItem(Item):
-    product_name = Field()
-    images = Field()
-    feature = Field()
-    specification = Field()
+    Manufacturer = Field()
+    Year = Field()
+    Model = Field()
+    Images = Field()
+    Features = Field()
+    Implements = Field()
+    Category = Field()
+    Subcategory = Field()
+    Specifications = Field()
+    Price = Field()
+    Pdf_literature = Field()
 
 
 class MasseyfergusionScraper (scrapy.Spider):
@@ -47,16 +54,32 @@ class MasseyfergusionScraper (scrapy.Spider):
         product = SiteProductItem()
 
         product_name = self._parse_name(response)
-        product['product_name'] = product_name
+        product['Manufacturer'] = product_name
 
         images = self._parse_images(response)
-        product['images'] = images
+        product['Images'] = images
+
+        year = '2019'
+        product['Year'] = year
 
         feature = self._parse_feature(response)
-        product['feature'] = feature
+        product['Features'] = feature
 
         specification = self._parse_specification(response)
-        product['specification'] = specification
+        product['Specifications'] = specification
+
+        subcategory = ''
+        product['Subcategory'] = subcategory
+
+        price = ''
+        product['Price'] = price
+
+        model = self._parse_model(response)
+        product['Model'] = model
+
+        # product['Category'] = category
+        # product['Implements'] = implements
+        # product['Pdf_literature'] = pdf_literature
 
         yield product
 
@@ -64,6 +87,21 @@ class MasseyfergusionScraper (scrapy.Spider):
     def _parse_name(response):
         title = response.xpath('//title/text()').extract()
         return title[0].strip() if title else None
+
+    def _parse_model(self, response):
+
+        models = []
+        t_header = response.xpath('//table[contains(@class, "table-striped")]/thead/tr/th/text()').extract()
+        t_body = response.xpath(
+            '//table[contains(@class, "table-striped")]/div[contains(@class, "tablePar")]//tr').extract()
+        if len(t_header) > 0:
+            for body in t_body:
+                tree_body = html.fromstring(body)
+                spec_body_vals = tree_body.xpath('//tr/td/text()')
+                if spec_body_vals:
+                    model = self._clean_text(spec_body_vals[0])
+                    models.append(model)
+        return models
 
     def _parse_images(self, response):
         images = []
